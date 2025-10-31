@@ -1,24 +1,36 @@
-import React from 'react';
-import './App.css'; // Usa el CSS global
+import React, { useState } from 'react';
+import './App.css';
 import agregarAzul from './assets/agregar-azul.png';
-
-// Petición 6: Importar la imagen de perfil (asumo .png en assets)
 import defaultAvatar from './assets/default-profile-image.png';
 
 function AgregarUsuario() {
-    // Funcionalidad (useState, handlers) eliminada
+    const [rol, setRol] = useState('');
+    const [mostrarCampos, setMostrarCampos] = useState(false);
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const valor = e.target.value.trim().toLowerCase();
+            if (valor === 'doctor' || valor === 'administrador') {
+                setRol(valor);
+                setMostrarCampos(true);
+            } else {
+                alert('Por favor escribe "Doctor" o "Administrador".');
+                setMostrarCampos(false);
+            }
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // No hace nada
-        console.log("Formulario enviado (simulación)");
+        console.log('Formulario enviado (simulación)');
     };
 
     return (
         <div className="form-usuario-container">
             <h2 className="page-title">
                 <img src={agregarAzul} alt="Agregar" />
-                Agregar Usuarios
+                Agregar Usuario
             </h2>
 
             <form className="user-form-card" onSubmit={handleSubmit}>
@@ -29,55 +41,87 @@ function AgregarUsuario() {
                     <button type="button" className="edit-avatar-btn"></button>
                 </div>
 
-                {/* --- Campos del Formulario (visuales) --- */}
-                <div className="form-grid">
-                    <div className="form-group">
-                        <label htmlFor="rol">¿Qué es?</label>
-                        <input type="text" id="rol" name="rol" 
-                               placeholder="Doctor / Administrador" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="nombre">Nombre(s)</label>
-                        <input type="text" id="nombre" name="nombre" 
-                               placeholder="Nicolas" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="apellidos">Apellidos</label>
-                        <input type="text" id="apellidos" name="apellidos" 
-                               placeholder="Alvarez" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="claveUnica">Clave Única</label>
-                        <input type="password" id="claveUnica" name="claveUnica" 
-                               placeholder="**********" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="sexo">Sexo</label>
-                        <input type="text" id="sexo" name="sexo" 
-                               placeholder="**********" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="telefono">Numero de Telefono</label>
-                        <input type="tel" id="telefono" name="telefono" 
-                               placeholder="+000 111 222 333" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="contraseña">Contraseña</label>
-                        <input type="text" id="contraseña" name="contraseña" 
-                               placeholder="Contraseña" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="direccion">Direccion</label>
-                        <input type="text" id="direccion" name="direccion" 
-                               placeholder="Direccion" />
-                    </div>
+                {/* --- Tarjeta para seleccionar rol --- */}
+                <div className="rol-card">
+                    <label htmlFor="rol" className="rol-label">
+                        ¿Qué es? <span className="hint">(Presiona Enter para confirmar)</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="rol"
+                        name="rol"
+                        className="rol-input"
+                        placeholder="Doctor o Administrador y presiona Enter"
+                        onKeyDown={handleKeyDown}
+                    />
                 </div>
+
+                {/* --- Campos para DOCTOR --- */}
+                {mostrarCampos && rol === 'doctor' && (
+                    <div className="form-grid">
+                        <div className="form-group full-width">
+                            <label htmlFor="nombre">Nombre completo</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ej. Nicolás Álvarez" />
+                        </div>
+
+                        <div className="form-group full-width">
+                            <label htmlFor="correo">Correo</label>
+                            <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="cedula">Cédula profesional</label>
+                            <input type="text" id="cedula" name="cedula" placeholder="1234567" />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="especialidad">Especialidad</label>
+                            <input type="text" id="especialidad" name="especialidad" placeholder="Cardiología, Pediatría..." />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="telefono">Teléfono de consultorio</label>
+                            <input type="tel" id="telefono" name="telefono" placeholder="+52 000 111 2222" />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="direccion">Dirección de consultorio</label>
+                            <input type="text" id="direccion" name="direccion" placeholder="Calle, número, colonia..." />
+                        </div>
+
+                        <div className="form-group full-width">
+                            <label htmlFor="contraseña">Contraseña</label>
+                            <input type="password" id="contraseña" name="contraseña" placeholder="********" />
+                        </div>
+                    </div>
+                )}
+
+                {/* --- Campos para ADMINISTRADOR --- */}
+                {mostrarCampos && rol === 'administrador' && (
+                    <div className="form-grid">
+                        <div className="form-group full-width">
+                            <label htmlFor="correo">Correo</label>
+                            <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" />
+                        </div>
+
+                        <div className="form-group full-width">
+                            <label htmlFor="nombre">Nombre completo</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ej. Mariana López" />
+                        </div>
+
+                        <div className="form-group full-width">
+                            <label htmlFor="contraseña">Contraseña</label>
+                            <input type="password" id="contraseña" name="contraseña" placeholder="********" />
+                        </div>
+                    </div>
+                )}
 
                 {/* --- Botón Guardar --- */}
-                <div className="form-actions">
-                    <button type="submit" className="btn btn-primary">Guardar</button>
-                </div>
-
+                {mostrarCampos && (
+                    <div className="form-actions">
+                        <button type="submit" className="btn btn-primary">Guardar</button>
+                    </div>
+                )}
             </form>
         </div>
     );

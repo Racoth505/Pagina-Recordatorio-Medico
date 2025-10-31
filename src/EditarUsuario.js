@@ -1,76 +1,231 @@
 import React, { useState } from 'react';
-import './App.css'; // Reutilizamos el CSS
+import './App.css';
 import editarAzul from './assets/editar-azul.png';
-
-// Ícono de avatar genérico (ACTUALIZADO a tu archivo local)
 import defaultAvatar from './assets/default-profile-image.png';
 
-// Datos falsos que simulan la respuesta de la API
+// --- Simulación de datos desde "Backend" ---
 const fakeApiData = {
-    '123456': {
+    '1': {
         rol: 'Doctor',
-        nombre: 'Nicolas',
-        apellidos: 'Alvarez',
-        telefono: '+000 111 222 333',
-        direccion: 'Direccion Ficticia 123',
-        avatar: defaultAvatar // Usamos la imagen importada
+        nombre: 'Nicolas Alvarez',
+        correo: 'nicolas@hospital.com',
+        cedula: 'A1234567',
+        especialidad: 'Cardiología',
+        telefono: '+52 111 222 3333',
+        direccion: 'Av. Salud #123',
+        contraseña: '******',
+        avatar: defaultAvatar,
     },
-    '654321': {
+    '2': {
+        rol: 'Administrador',
+        nombre: 'Mariana López',
+        correo: 'mariana@admin.com',
+        contraseña: '******',
+        avatar: defaultAvatar,
+    },
+    '3': {
         rol: 'Paciente',
-        nombre: 'Ana',
-        apellidos: 'Gomez',
-        telefono: '+111 222 333 444',
-        direccion: 'Otra Calle 456',
-        avatar: defaultAvatar // Usamos la imagen importada
-    }
+        nombre: 'Ana Gómez',
+        sexo: 'Femenino',
+        telefono: '+52 555 888 9999',
+        direccion: 'Calle Paz 456',
+        nacimiento: '1998-02-15',
+        padecimiento: 'Hipertensión',
+        avatar: defaultAvatar,
+    },
 };
 
 function EditarUsuario() {
     const [claveUnica, setClaveUnica] = useState('');
-    const [usuarioData, setUsuarioData] = useState(null); // Guarda los datos del usuario
-    
-    // Estados separados para los campos editables
-    const [telefono, setTelefono] = useState('');
-    const [direccion, setDireccion] = useState('');
+    const [usuarioData, setUsuarioData] = useState(null);
+    const [editableFields, setEditableFields] = useState({});
 
+    // --- Buscar usuario al presionar Enter ---
     const handleClaveCheck = (e) => {
-        // Si presiona Enter...
         if (e.key === 'Enter') {
             e.preventDefault();
-            
-            // Simulación de búsqueda en Backend
-            const data = fakeApiData[claveUnica];
-            
+            const data = fakeApiData[claveUnica.trim()];
             if (data) {
                 setUsuarioData(data);
-                // Seteamos los campos editables
-                setTelefono(data.telefono);
-                setDireccion(data.direccion);
+                setEditableFields({ ...data });
             } else {
-                alert("Clave Única no encontrada (Prueba '123456' o '654321')");
+                alert('Usuario no encontrado (usa 1, 2 o 3)');
                 setUsuarioData(null);
             }
         }
     };
 
+    const handleChange = (e) => {
+        setEditableFields({
+            ...editableFields,
+            [e.target.name]: e.target.value,
+        });
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Datos a actualizar:", {
-            claveUnica: claveUnica,
-            telefono: telefono,
-            direccion: direccion
-        });
-        alert("Usuario actualizado (ver consola)");
+        console.log('Datos actualizados:', editableFields);
+        alert('Usuario actualizado');
     };
-    
+
     const handleEliminar = () => {
-        // Usamos un simple 'confirm' por ahora
-        if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-            console.log("Eliminando usuario:", claveUnica);
-            alert("Usuario eliminado (simulación)");
-            // Limpiar formulario
-            setUsuarioData(null);
-            setClaveUnica('');
+        if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
+            console.log('Usuario eliminado:', claveUnica);
+            handleRecargar(); // limpia todo al eliminar
+        }
+    };
+
+    // Limpia el formulario como si recargaras la página
+    const handleRecargar = () => {
+        setUsuarioData(null);
+        setEditableFields({});
+        setClaveUnica('');
+    };
+
+    // --- Campos según el rol ---
+    const renderCamposPorRol = () => {
+        if (!usuarioData) return null;
+
+        const rol = usuarioData.rol.toLowerCase();
+
+        switch (rol) {
+            case 'doctor':
+                return (
+                    <>
+                        <div className="form-group full-width">
+                            <label>Correo</label>
+                            <input
+                                type="email"
+                                name="correo"
+                                value={editableFields.correo || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Cédula Profesional</label>
+                            <input
+                                type="text"
+                                name="cedula"
+                                value={editableFields.cedula || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Especialidad</label>
+                            <input
+                                type="text"
+                                name="especialidad"
+                                value={editableFields.especialidad || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Contraseña</label>
+                            <input
+                                type="password"
+                                name="contraseña"
+                                value={editableFields.contraseña || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Teléfono de consultorio</label>
+                            <input
+                                type="text"
+                                name="telefono"
+                                value={editableFields.telefono || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group full-width">
+                            <label>Dirección de consultorio</label>
+                            <input
+                                type="text"
+                                name="direccion"
+                                value={editableFields.direccion || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </>
+                );
+
+            case 'administrador':
+                return (
+                    <>
+                        <div className="form-group full-width">
+                            <label>Correo</label>
+                            <input
+                                type="email"
+                                name="correo"
+                                value={editableFields.correo || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group full-width">
+                            <label>Contraseña</label>
+                            <input
+                                type="password"
+                                name="contraseña"
+                                value={editableFields.contraseña || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </>
+                );
+
+            case 'paciente':
+                return (
+                    <>
+                        <div className="form-group">
+                            <label>Sexo</label>
+                            <input
+                                type="text"
+                                name="sexo"
+                                value={editableFields.sexo || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Teléfono</label>
+                            <input
+                                type="text"
+                                name="telefono"
+                                value={editableFields.telefono || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Dirección</label>
+                            <input
+                                type="text"
+                                name="direccion"
+                                value={editableFields.direccion || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Fecha de nacimiento</label>
+                            <input
+                                type="date"
+                                name="nacimiento"
+                                value={editableFields.nacimiento || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group full-width">
+                            <label>Padecimiento</label>
+                            <input
+                                type="text"
+                                name="padecimiento"
+                                value={editableFields.padecimiento || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </>
+                );
+
+            default:
+                return <p>Rol desconocido</p>;
         }
     };
 
@@ -82,81 +237,68 @@ function EditarUsuario() {
             </h2>
 
             <form className="user-form-card" onSubmit={handleSubmit}>
-                
-                {/* --- Avatar (solo si hay datos) --- */}
+                {/* --- Avatar --- */}
                 {usuarioData && (
                     <div className="avatar-section">
-                        <img src={usuarioData.avatar || defaultAvatar} alt="Avatar" className="avatar-img" />
+                        <img
+                            src={usuarioData.avatar || defaultAvatar}
+                            alt="Avatar"
+                            className="avatar-img"
+                        />
                         <button type="button" className="edit-avatar-btn"></button>
                     </div>
                 )}
 
-                {/* --- Grid de Campos --- */}
-                <div className="form-grid">
-                    
-                    {/* --- Campo de Clave (siempre visible) --- */}
-                    <div className="form-group full-width">
-                        <label htmlFor="claveUnica">Clave Única (Presiona Enter para buscar)</label>
-                        <input 
-                            type="text" 
-                            id="claveUnica" 
-                            name="claveUnica" 
-                            value={claveUnica}
-                            onChange={(e) => setClaveUnica(e.target.value)}
-                            onKeyDown={handleClaveCheck}
-                            disabled={!!usuarioData} /* Se deshabilita después de buscar */
-                            placeholder="Escribe 123456 o 654321 y presiona Enter"
-                        />
-                    </div>
-
-                    {/* --- Campos Ocultos (solo aparecen si hay datos) --- */}
-                    {usuarioData && (
-                        <>
-                            {/* Campos GRISES (deshabilitados) */}
-                            <div className="form-group">
-                                <label htmlFor="rol">¿Qué es?</label>
-                                <input type="text" id="rol" name="rol" 
-                                       value={usuarioData.rol} disabled />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="nombre">Nombre(s)</label>
-                                <input type="text" id="nombre" name="nombre" 
-                                       value={usuarioData.nombre} disabled />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="apellidos">Apellidos</label>
-                                <input type="text" id="apellidos" name="apellidos" 
-                                       value={usuarioData.apellidos} disabled />
-                            </div>
-                            
-                            {/* Campos BLANCOS (editables) */}
-                            <div className="form-group">
-                                <label htmlFor="telefono">Numero de Telefono</label>
-                                <input type="text" id="telefono" name="telefono" 
-                                    placeholder="1112223344" />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="direccion">Direccion</label>
-                                <input type="text" id="direccion" name="direccion" 
-                                    placeholder="Direccion" />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="contraseña">Contraseña</label>
-                                <input type="text" id="contraseña" name="contraseña" 
-                                    placeholder="Contraseña" />
-                            </div>
-                        </>
-                    )}
+                {/* --- Campo de ID --- */}
+                <div className="form-group full-width">
+                    <label>ID (Presiona Enter para buscar)</label>
+                    <input
+                        type="text"
+                        name="claveUnica"
+                        value={claveUnica}
+                        onChange={(e) => setClaveUnica(e.target.value)}
+                        onKeyDown={handleClaveCheck}
+                        disabled={!!usuarioData}
+                        placeholder="Escribe 1, 2 o 3"
+                    />
                 </div>
-                
-                {/* --- Botones (solo si hay datos) --- */}
+
+                {/* --- Si hay usuario --- */}
+                {usuarioData && (
+                    <div className="form-grid">
+                        <div className="form-group full-width">
+                            <label>Rol</label>
+                            <input type="text" value={usuarioData.rol} disabled />
+                        </div>
+                        <div className="form-group full-width">
+                            <label>Nombre completo</label>
+                            <input type="text" value={usuarioData.nombre} disabled />
+                        </div>
+
+                        {/* Campos dinámicos según el rol */}
+                        {renderCamposPorRol()}
+                    </div>
+                )}
+
+                {/* --- Botones --- */}
                 {usuarioData && (
                     <div className="form-actions">
-                        <button type="button" className="btn btn-danger" onClick={handleEliminar}>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleRecargar}
+                        >
+                            Limpiar / Nuevo ID
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-danger"
+                            onClick={handleEliminar}
+                        >
                             Eliminar Usuario
                         </button>
                         <button type="submit" className="btn btn-primary">
-                            Guardar
+                            Guardar Cambios
                         </button>
                     </div>
                 )}

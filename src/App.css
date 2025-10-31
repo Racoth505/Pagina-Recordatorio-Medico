@@ -492,3 +492,44 @@ tbody tr:hover {
 .btn-danger:hover {
     background-color: #b30021;
 }
+
+
+/* --- Tarjeta del campo ¿Qué es? --- */
+.rol-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 25px 30px;
+    margin-bottom: 30px;
+    border: 1px solid #eee;
+}
+
+.rol-label {
+    display: block;
+    font-weight: 600;
+    color: #4a6fff;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.hint {
+    font-size: 0.9rem;
+    color: #777;
+    font-weight: normal;
+}
+
+.rol-input {
+    width: 95%;
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.rol-input:focus {
+    border-color: #6a8dff;
+    box-shadow: 0 0 0 3px #e4e9ff;
+    outline: none;
+}
