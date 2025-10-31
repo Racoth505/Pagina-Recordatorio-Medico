@@ -34,7 +34,7 @@ function AgregarUsuario() {
                     <div className="form-group">
                         <label htmlFor="rol">¿Qué es?</label>
                         <input type="text" id="rol" name="rol" 
-                               placeholder="Doctor / Paciente / Administrador" />
+                               placeholder="Doctor / Administrador" />
                     </div>
                     <div className="form-group">
                         <label htmlFor="nombre">Nombre(s)</label>
@@ -61,7 +61,12 @@ function AgregarUsuario() {
                         <input type="tel" id="telefono" name="telefono" 
                                placeholder="+000 111 222 333" />
                     </div>
-                    <div className="form-group full-width">
+                    <div className="form-group">
+                        <label htmlFor="contraseña">Contraseña</label>
+                        <input type="text" id="contraseña" name="contraseña" 
+                               placeholder="Contraseña" />
+                    </div>
+                    <div className="form-group">
                         <label htmlFor="direccion">Direccion</label>
                         <input type="text" id="direccion" name="direccion" 
                                placeholder="Direccion" />

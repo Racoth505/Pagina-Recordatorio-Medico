@@ -132,15 +132,18 @@ function EditarUsuario() {
                             {/* Campos BLANCOS (editables) */}
                             <div className="form-group">
                                 <label htmlFor="telefono">Numero de Telefono</label>
-                                <input type="tel" id="telefono" name="telefono" 
-                                       value={telefono} 
-                                       onChange={(e) => setTelefono(e.target.value)} />
+                                <input type="text" id="telefono" name="telefono" 
+                                    placeholder="1112223344" />
                             </div>
-                            <div className="form-group full-width">
+                            <div className="form-group">
                                 <label htmlFor="direccion">Direccion</label>
                                 <input type="text" id="direccion" name="direccion" 
-                                       value={direccion} 
-                                       onChange={(e) => setDireccion(e.target.value)} />
+                                    placeholder="Direccion" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="contraseña">Contraseña</label>
+                                <input type="text" id="contraseña" name="contraseña" 
+                                    placeholder="Contraseña" />
                             </div>
                         </>
                     )}
