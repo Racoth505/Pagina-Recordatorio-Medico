@@ -56,36 +56,6 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
                         </>
                     )}
                 </NavLink>
-
-                {/* --- NUEVAS RUTAS AÑADIDAS --- */}
-
-                <NavLink to="/dashboard/recetas" className="nav-item">
-                    {({ isActive }) => (
-                        <>
-                            <img src={isActive ? agregarAzul : agregarNegro} alt="Recetas" />
-                            <span className="nav-text">Agregar Recetas</span>
-                        </>
-                    )}
-                </NavLink>
-
-                <NavLink to="/dashboard/consultas" className="nav-item">
-                    {({ isActive }) => (
-                        <>
-                            <img src={isActive ? editarAzul : editarNegro} alt="Consultas" />
-                            <span className="nav-text">Gestionar Consultas</span>
-                        </>
-                    )}
-                </NavLink>
-
-                <NavLink to="/dashboard/solicitar-consulta" className="nav-item">
-                    {({ isActive }) => (
-                        <>
-                            <img src={isActive ? usuariosAzul : usuariosNegro} alt="Solicitar" />
-                            <span className="nav-text">Solicitar Consulta</span>
-                        </>
-                    )}
-                </NavLink>
-
             </nav>
 
             {/* --- SALIR Y TOGGLE --- */}
