@@ -27,16 +27,21 @@ function Login() {
             // Redirigir según el rol
             switch (usuarioEncontrado.rol) {
                 case 'Administrador':
-                    navigate('/dashboard/admin');
+                    // CAMBIO CLAVE: Redirigimos directamente a la vista de usuarios
+                    // Esta ruta es la que quieres ver desde el comienzo
+                    navigate('/dashboard/usuarios'); 
                     break;
                 case 'Doctor':
-                    navigate('/dashboard/doctor');
+                    // Redirigimos al doctor a su vista por defecto
+                    navigate('/doctor/ver-pacientes');
                     break;
+                // Si tuvieras Paciente como rol, podrías definir su ruta aquí
                 case 'Paciente':
                     navigate('/dashboard/paciente');
                     break;
                 default:
-                    navigate('/dashboard');
+                    // Fallback si el rol no está definido
+                    navigate('/dashboard'); 
             }
         } else {
             setError('Credenciales incorrectas.');
