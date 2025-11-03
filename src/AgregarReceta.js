@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ModalMedicamento from './AgregarMedicamento'; 
 import usuariosData from './usuarios.json';
-import recetasData from './recetas.json'; // <-- 1. IMPORTAR EL NUEVO JSON
 import editarAzul from './assets/editar-azul.png'; 
 
 const getTodayDate = () => {
@@ -22,14 +21,19 @@ function AgregarReceta() {
   const [diagnostico, setDiagnostico] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [medicamentoAEditar, setMedicamentoAEditar] = useState(null);
+  const [doctorId, setDoctorId] = useState(null);
 
   useEffect(() => {
+    const loggedInDoctorId = parseInt(localStorage.getItem('userId'));
+    setDoctorId(loggedInDoctorId);
+    
     const guardados = JSON.parse(localStorage.getItem('usuarios')) || usuariosData;
-    const pacientesFiltrados = guardados.filter(u => u.rol === 'Paciente');
-    setPacientes(pacientesFiltrados);
+    const pacientesDelDoctor = guardados.filter(u => 
+        u.rol === 'Paciente' && u.doctorId === loggedInDoctorId
+    );
+    setPacientes(pacientesDelDoctor);
   }, []);
 
-  // Tu lógica para el modal (perfecta)
   const handleSaveMedicamento = (medicamentoGuardado) => {
     if (medicamentoAEditar !== null) {
       const indexAActualizar = medicamentoAEditar.index;
@@ -68,7 +72,6 @@ function AgregarReceta() {
     setMedicamentoAEditar(null);
   };
 
-  // Tu lógica de guardado (modificada para usar recetasData)
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
@@ -89,25 +92,22 @@ function AgregarReceta() {
     const nombrePaciente = pacienteInfo ? pacienteInfo.nombreCompleto : 'ID ' + selectedPaciente;
 
     const nuevaReceta = {
-      id: new Date().getTime(), // ID único basado en el tiempo
+      id: new Date().getTime(),
       pacienteId: parseInt(selectedPaciente),
       pacienteNombre: nombrePaciente,
       fecha: fecha,
       diagnostico: diagnostico,
       observaciones: observaciones,
-      medicamentos: medicamentos
+      medicamentos: medicamentos,
+      doctorId: doctorId
     };
 
-    // --- 2. LÓGICA DE CARGA/GUARDADO ACTUALIZADA ---
-    // Carga las recetas de localStorage O del archivo recetas.json
-    const recetasActuales = JSON.parse(localStorage.getItem('recetasGuardadas')) || recetasData;
-    
+    const recetasActuales = JSON.parse(localStorage.getItem('recetasGuardadas')) || [];
     const recetasActualizadas = [...recetasActuales, nuevaReceta];
     localStorage.setItem('recetasGuardadas', JSON.stringify(recetasActualizadas));
 
     alert(`✅ Receta asignada con éxito a ${nombrePaciente}.`);
 
-    // Limpiar formulario
     setMedicamentos([]);
     setSelectedPaciente("");
     setFecha(getTodayDate());
@@ -115,7 +115,6 @@ function AgregarReceta() {
     setObservaciones("");
   };
 
-  // --- RENDER (Tu JSX es correcto, no se cambia nada) ---
   return (
     <div className="form-usuario-container">
       <h2 className="page-title">
@@ -185,14 +184,14 @@ function AgregarReceta() {
                   <div className="medicamento-actions">
                     <button 
                       type="button" 
-                      className="btn-secundario" // Botón de Editar
+                      className="btn-secundario"
                       onClick={() => handleOpenModalEditar(index)} 
                     >
                       Editar
                     </button>
                     <button 
                       type="button" 
-                      className="btn-eliminar" // Botón de Eliminar
+                      className="btn-eliminar"
                       onClick={() => handleRemoveMedicamento(index)}
                     >
                       Eliminar
@@ -226,12 +225,11 @@ function AgregarReceta() {
         </form>
       </div>
 
-      {/* El Modal (ahora usa 'onSave' y 'medicamentoInicial') */}
       <ModalMedicamento 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleSaveMedicamento} // Prop 'onSave'
-        medicamentoInicial={medicamentoAEditar ? medicamentoAEditar.data : null} // Prop 'medicamentoInicial'
+        onSave={handleSaveMedicamento}
+        medicamentoInicial={medicamentoAEditar ? medicamentoAEditar.data : null}
       />
     </div>
   );

@@ -714,6 +714,11 @@ tbody tr:hover {
     border-top: 1px solid #eee;
 }
 
+.modal-body .form-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
 
 /* 8. ACCESIBILIDAD
 ----------------------------------- */
@@ -804,38 +809,4 @@ tbody tr:hover {
     width: 1px;
     height: 1px;
     overflow: hidden;
-}
-
-/* --- Estilos para botones en lista de medicamentos --- */
-
-/* Botón secundario (Editar en la lista) */
-.btn-secundario {
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid #6a8dff; /* Borde azul */
-  background-color: #f0f3ff; /* Fondo azul claro */
-  color: #6a8dff; /* Texto azul */
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-secundario:hover {
-  background-color: #e4e9ff;
-}
-
-/* Botón eliminar (Eliminar en la lista) */
-.btn-eliminar {
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid #d90429; /* Borde rojo */
-  background-color: #fff0f0; /* Fondo rojo claro */
-  color: #d90429; /* Texto rojo */
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-eliminar:hover {
-  background-color: #ffe0e0;
 }
