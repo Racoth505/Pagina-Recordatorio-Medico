@@ -136,6 +136,7 @@ function VerPacientes() {
               <th>ID</th>
               <th>Nombre</th>
               <th>Diagnóstico (Padecimiento)</th>
+              <th>Fecha de Emision</th>
               <th>Rol</th>
             </tr>
           </thead>
@@ -148,6 +149,7 @@ function VerPacientes() {
                     <td>{paciente.id}</td>
                     <td>{nombre}</td>
                     <td>{paciente.padecimiento || 'N/A'}</td>
+                    <td>{}</td>
                     <td>{paciente.rol}</td>
                   </tr>
                 );
