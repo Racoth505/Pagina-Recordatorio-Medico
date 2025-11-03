@@ -129,7 +129,7 @@ function AgregarUsuario() {
                                     <input name="especialidad" onChange={handleChange} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Teléfono</label>
+                                    <label>Teléfono de consultorio</label>
                                     <input name="telefono" onChange={handleChange} />
                                 </div>
                                 <div className="form-group full">
@@ -137,7 +137,7 @@ function AgregarUsuario() {
                                     <input type="password" name="contraseña" onChange={handleChange} />
                                 </div>
                                 <div className="form-group full-width">
-                                    <label>Dirección</label>
+                                    <label>Dirección de consultorio</label>
                                     <input name="direccion" onChange={handleChange} />
                                 </div>
                             </>
