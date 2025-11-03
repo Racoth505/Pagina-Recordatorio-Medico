@@ -163,7 +163,7 @@ function VerPacientes() {
             )}
             {Array.from({ length: Math.max(0, 5 - sortedPacientes.length) }).map((_, i) => (
               <tr key={`empty-${i}`}>
-                <td colSpan="4" style={{ height: '50px' }}>&nbsp;</td>
+                <td colSpan="5" style={{ height: '50px' }}>&nbsp;</td>
               </tr>
             ))}
           </tbody>
