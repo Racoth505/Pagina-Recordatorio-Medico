@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import editarAzul from './assets/editar-azul.png';
-import defaultAvatar from './assets/default-profile-image.png';
+import pdfIcon from './assets/pdf-icon.png'; // Necesitarás un icono de PDF
 
 function EditarUsuario() {
     // --- Estados principales ---
@@ -49,16 +49,24 @@ function EditarUsuario() {
         });
     };
 
-    // --- Cargar nueva imagen de cédula ---
-    const handleCedulaImageChange = (e) => {
+    // --- Cargar nuevo PDF de cédula ---
+    const handleCedulaPDFChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Verificar que sea un PDF
+        if (file.type !== 'application/pdf') {
+            alert('Por favor, selecciona un archivo PDF');
+            e.target.value = ''; // Limpiar el input
+            return;
+        }
 
         const reader = new FileReader();
         reader.onloadend = () => {
             setEditableFields({
                 ...editableFields,
-                cedulaImagen: reader.result, // Guardamos la imagen en base64
+                cedulaPDF: reader.result, // Guardamos el PDF en base64
+                cedulaNombre: file.name // Guardamos el nombre del archivo
             });
         };
         reader.readAsDataURL(file);
@@ -93,6 +101,18 @@ function EditarUsuario() {
         setClaveUnica('');
     };
 
+    // --- Descargar PDF de cédula ---
+    const handleDescargarPDF = () => {
+        if (editableFields.cedulaPDF) {
+            const link = document.createElement('a');
+            link.href = editableFields.cedulaPDF;
+            link.download = editableFields.cedulaNombre || 'cedula_profesional.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
     // --- Renderizar los campos según el rol ---
     const renderCamposPorRol = () => {
         if (!usuarioData) return null;
@@ -112,24 +132,43 @@ function EditarUsuario() {
                             />
                         </div>
 
-                        {/* --- Vista de imagen de cédula --- */}
+                        {/* --- Vista de PDF de cédula --- */}
                         <div className="form-group full-width">
-                        <label>Cédula Profesional (Imagen)</label>
+                            <label>Cédula Profesional (PDF)</label>
+                            
+                            {/* --- Vista previa del PDF --- */}
+                            <div className="preview-wrapper">
+                                {editableFields.cedulaPDF ? (
+                                    <div className="pdf-preview">
+                                        <img 
+                                            src={pdfIcon} 
+                                            alt="Icono PDF" 
+                                            className="pdf-icon"
+                                        />
+                                        <span className="pdf-name">
+                                            {editableFields.cedulaNombre || 'cedula_profesional.pdf'}
+                                        </span>
+                                        <button 
+                                            type="button" 
+                                            className="btn-download"
+                                            onClick={handleDescargarPDF}
+                                        >
+                                            Descargar
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="no-pdf">
+                                        No hay PDF cargado
+                                    </div>
+                                )}
+                            </div>
 
-                        {/* --- Vista de imagen de cédula --- */}
-                        <div className="preview-wrapper">
-                            <img
-                            src={editableFields.cedulaImagen || defaultAvatar}
-                            alt="Cédula profesional"
-                            className="preview-image"
+                            <input
+                                type="file"
+                                accept=".pdf,application/pdf"
+                                onChange={handleCedulaPDFChange}
                             />
-                        </div>
-
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleCedulaImageChange}
-                        />
+                            <p className="file-hint">Formatos aceptados: PDF</p>
                         </div>
 
                         <div className="form-group">
