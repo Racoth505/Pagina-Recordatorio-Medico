@@ -29,9 +29,16 @@ function Login() {
         );
 
         if (usuarioEncontrado) {
+            // Guardar todos los datos del usuario en localStorage
             localStorage.setItem('userId', usuarioEncontrado.id);
             localStorage.setItem('rol', usuarioEncontrado.rol);
             localStorage.setItem('nombre', usuarioEncontrado.nombreCompleto);
+            localStorage.setItem('correo', usuarioEncontrado.correo || '');
+            localStorage.setItem('telefono', usuarioEncontrado.telefono || '');
+            localStorage.setItem('sexo', usuarioEncontrado.sexo || '');
+            localStorage.setItem('numeroConsultorio', usuarioEncontrado.numeroConsultorio || '');
+            localStorage.setItem('direccionConsultorio', usuarioEncontrado.direccionConsultorio || '');
+            localStorage.setItem('especialidad', usuarioEncontrado.especialidad || 'Médico');
 
             switch (usuarioEncontrado.rol) {
                 case 'Administrador':
@@ -90,3 +97,4 @@ function Login() {
 }
 
 export default Login;
+
