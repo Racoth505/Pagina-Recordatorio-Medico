@@ -13,14 +13,13 @@ import flechaImg from './assets/flecha-para-cerrar-barra.png';
 import recetaIconoAzul from './assets/editar-azul.png';
 import recetaIconoNegro from './assets/editar-negro.png';
 
-
 function SidebarDoctor({ isCollapsed, toggleSidebar }) { 
     const navigate = useNavigate();
 
     const handleLogout = () => {
         localStorage.removeItem('rol');
         localStorage.removeItem('nombre');
-        localStorage.removeItem('userId'); // Limpiar el ID al salir
+        localStorage.removeItem('userId');
         navigate('/login'); 
     };
 
@@ -92,6 +91,33 @@ function SidebarDoctor({ isCollapsed, toggleSidebar }) {
                         </>
                     )}
                 </NavLink>
+
+                {/* ITEM PERFIL TEMPORAL */}
+                <NavLink 
+                    to="/doctor/perfil" 
+                    className="nav-item"
+                >
+                    {({ isActive }) => (
+                        <>
+                            <div className="icon-placeholder" style={{
+                                width: '24px',
+                                height: '24px',
+                                backgroundColor: isActive ? '#3498db' : '#666',
+                                color: 'white',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                                fontWeight: 'bold'
+                            }}>
+                                P
+                            </div>
+                            <span className="nav-text">Perfil</span>
+                        </>
+                    )}
+                </NavLink>
+
             </nav>
 
             <div className="sidebar-footer">
