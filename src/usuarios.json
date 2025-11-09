@@ -5,5 +5,12 @@
     "nombreCompleto": "Administrador",
     "correo": "admin@admin.com",
     "contraseña": "admin123"
+  },
+  {
+    "id": 2,
+    "rol": "Doctor",
+    "nombreCompleto": "Doctor",
+    "correo": "doctor@doctor.com",
+    "contraseña": "doc123"
   }
 ]
