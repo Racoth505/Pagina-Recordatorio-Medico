@@ -39,7 +39,7 @@ function SidebarDoctor({ isCollapsed, toggleSidebar }) {
                     {({ isActive }) => (
                         <>
                             <img src={isActive ? usuariosAzul : usuariosNegro} alt="Ver pacientes" />
-                            <span className="nav-text">Mis Pacientes</span>
+                            <span className="nav-text">Ver pacientes</span>
                         </>
                     )}
                 </NavLink>
@@ -63,7 +63,7 @@ function SidebarDoctor({ isCollapsed, toggleSidebar }) {
                     {({ isActive }) => (
                         <>
                             <img src={isActive ? recetaIconoAzul : recetaIconoNegro} alt="Ver recetas" />
-                            <span className="nav-text">Mis Recetas</span>
+                            <span className="nav-text">Ver recetas</span>
                         </>
                     )}
                 </NavLink>
@@ -92,14 +92,14 @@ function SidebarDoctor({ isCollapsed, toggleSidebar }) {
                     )}
                 </NavLink>
 
-                {/* ITEM PERFIL TEMPORAL */}
+                {/* ITEM PERFIL - CON ESPACIADO CORRECTO */}
                 <NavLink 
                     to="/doctor/perfil" 
                     className="nav-item"
                 >
                     {({ isActive }) => (
                         <>
-                            <div className="icon-placeholder" style={{
+                            <div style={{
                                 width: '24px',
                                 height: '24px',
                                 backgroundColor: isActive ? '#3498db' : '#666',
@@ -109,7 +109,8 @@ function SidebarDoctor({ isCollapsed, toggleSidebar }) {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontSize: '14px',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                marginRight: '10px' // ← ESTA LÍNEA FALTABA
                             }}>
                                 P
                             </div>
