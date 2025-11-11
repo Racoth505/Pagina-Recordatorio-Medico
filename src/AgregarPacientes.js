@@ -225,7 +225,7 @@ function AgregarPacientes() {
         const usuariosActualizados = [...usuariosActuales, nuevoPaciente];
         localStorage.setItem('usuarios', JSON.stringify(usuariosActualizados));
 
-        alert(Paciente agregado con exito\nClave única: ${formData.claveUnica});
+        alert(`Paciente agregado con exito\nClave única: ${formData.claveUnica}`);
 
         setFormData({
             nombreCompleto: '',
