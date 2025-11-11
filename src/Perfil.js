@@ -15,6 +15,8 @@ const Perfil = () => {
         direccionConsultorio: '',
         especialidad: 'Médico'
     });
+    const [mensaje, setMensaje] = useState('');
+    const [tipoMensaje, setTipoMensaje] = useState('');
 
     useEffect(() => {
         // Obtener datos del doctor desde localStorage
@@ -50,33 +52,133 @@ const Perfil = () => {
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
         
-        // Validar que la contraseña actual no esté vacía
-        if (!passwordData.contrasenaActual) {
-            alert('Por favor ingresa tu contraseña actual');
+        // Limpiar mensajes anteriores
+        setMensaje('');
+        setTipoMensaje('');
+
+        // Validar campos vacíos
+        if (!passwordData.contrasenaActual || !passwordData.nuevaContrasena || !passwordData.confirmarContrasena) {
+            setMensaje('Por favor, completa todos los campos');
+            setTipoMensaje('error');
+            return;
+        }
+
+        // Obtener información del usuario actual
+        const userEmail = localStorage.getItem('correo');
+        const userName = localStorage.getItem('nombre');
+        const userId = localStorage.getItem('userId');
+
+        // Buscar usuario en localStorage
+        const storedUsers = JSON.parse(localStorage.getItem('usuarios')) || [];
+        const usuariosData = JSON.parse(localStorage.getItem('usuariosData')) || [];
+        
+        // Usar storedUsers o usuariosData
+        let usersToCheck = [...storedUsers];
+        if (usersToCheck.length === 0 && usuariosData.length > 0) {
+            usersToCheck = [...usuariosData];
+        }
+
+        // Buscar usuario por diferentes criterios
+        const currentUser = usersToCheck.find(user => {
+            return (
+                (user.id && user.id.toString() === userId?.toString()) ||
+                (user.correo && user.correo === userEmail) ||
+                (user.nombreCompleto && user.nombreCompleto === userName) ||
+                (user.nombre && user.nombre === userName) ||
+                (user.email && user.email === userEmail)
+            );
+        });
+
+        if (!currentUser) {
+            setMensaje('No se pudo encontrar el usuario. Contacte al administrador.');
+            setTipoMensaje('error');
+            return;
+        }
+
+        // Verificar contraseña actual
+        const contraseñaGuardada = currentUser.contraseña || currentUser.password || currentUser.contrasena;
+        
+        if (contraseñaGuardada !== passwordData.contrasenaActual) {
+            setMensaje('La contraseña actual es incorrecta');
+            setTipoMensaje('error');
+            return;
+        }
+
+        // Validaciones de nueva contraseña
+        if (passwordData.contrasenaActual === passwordData.nuevaContrasena) {
+            setMensaje('La nueva contraseña no puede ser igual a la actual');
+            setTipoMensaje('error');
+            return;
+        }
+
+        if (passwordData.nuevaContrasena.length < 6) {
+            setMensaje('La contraseña debe tener al menos 6 caracteres');
+            setTipoMensaje('error');
             return;
         }
 
         if (passwordData.nuevaContrasena !== passwordData.confirmarContrasena) {
-            alert('Las nuevas contraseñas no coinciden');
+            setMensaje('Las nuevas contraseñas no coinciden');
+            setTipoMensaje('error');
             return;
         }
 
-        // Validar que la nueva contraseña no sea igual a la actual
-        if (passwordData.contrasenaActual === passwordData.nuevaContrasena) {
-            alert('La nueva contraseña no puede ser igual a la actual');
-            return;
-        }
-
-        // Aquí deberías agregar la lógica para verificar la contraseña actual
-        // con tu sistema de autenticación
-
-        alert('Contraseña cambiada exitosamente');
-        setPasswordData({
-            contrasenaActual: '',
-            nuevaContrasena: '',
-            confirmarContrasena: ''
+        // Actualizar contraseña
+        const userIndex = usersToCheck.findIndex(user => {
+            return (
+                (user.id && user.id.toString() === userId?.toString()) ||
+                (user.correo && user.correo === userEmail) ||
+                (user.nombreCompleto && user.nombreCompleto === userName) ||
+                (user.nombre && user.nombre === userName) ||
+                (user.email && user.email === userEmail)
+            );
         });
-        setShowPasswordModal(false);
+
+        if (userIndex !== -1) {
+            // Actualizar contraseña
+            usersToCheck[userIndex].contraseña = passwordData.nuevaContrasena;
+            
+            // Guardar en localStorage
+            if (storedUsers.length > 0) {
+                localStorage.setItem('usuarios', JSON.stringify(usersToCheck));
+            } else {
+                localStorage.setItem('usuariosData', JSON.stringify(usersToCheck));
+            }
+
+            // También actualizar en el otro almacenamiento si existe
+            if (usuariosData.length > 0 && storedUsers.length > 0) {
+                const dataIndex = usuariosData.findIndex(user => {
+                    return (
+                        (user.id && user.id.toString() === userId?.toString()) ||
+                        (user.correo && user.correo === userEmail) ||
+                        (user.nombreCompleto && user.nombreCompleto === userName)
+                    );
+                });
+                if (dataIndex !== -1) {
+                    usuariosData[dataIndex].contraseña = passwordData.nuevaContrasena;
+                    localStorage.setItem('usuariosData', JSON.stringify(usuariosData));
+                }
+            }
+
+            setMensaje('¡Contraseña cambiada exitosamente!');
+            setTipoMensaje('success');
+            
+            // Limpiar campos después de 2 segundos y cerrar modal
+            setTimeout(() => {
+                setPasswordData({
+                    contrasenaActual: '',
+                    nuevaContrasena: '',
+                    confirmarContrasena: ''
+                });
+                setShowPasswordModal(false);
+                setMensaje('');
+                setTipoMensaje('');
+            }, 2000);
+
+        } else {
+            setMensaje('Error al actualizar la contraseña');
+            setTipoMensaje('error');
+        }
     };
 
     const closeModal = () => {
@@ -86,6 +188,38 @@ const Perfil = () => {
             nuevaContrasena: '',
             confirmarContrasena: ''
         });
+        setMensaje('');
+        setTipoMensaje('');
+    };
+
+    // Estilos para mensajes
+    const getMessageStyles = () => {
+        const baseStyles = {
+            padding: '12px',
+            borderRadius: '6px',
+            margin: '15px 10px',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '14px'
+        };
+
+        if (tipoMensaje === 'error') {
+            return {
+                ...baseStyles,
+                backgroundColor: '#f8d7da',
+                color: '#721c24',
+                border: '1px solid #f5c6cb'
+            };
+        } else if (tipoMensaje === 'success') {
+            return {
+                ...baseStyles,
+                backgroundColor: '#d4edda',
+                color: '#155724',
+                border: '1px solid #c3e6cb'
+            };
+        }
+
+        return baseStyles;
     };
 
     return (
@@ -322,7 +456,7 @@ const Perfil = () => {
 
                             {/* Campo Confirmar Contraseña */}
                             <div style={{ 
-                                marginBottom: '35px',
+                                marginBottom: '25px',
                                 padding: '0 10px'
                             }}>
                                 <div style={{ 
@@ -353,6 +487,13 @@ const Perfil = () => {
                                     placeholder="Confirma la contraseña"
                                 />
                             </div>
+
+                            {/* Mensaje de estado */}
+                            {mensaje && (
+                                <div style={getMessageStyles()}>
+                                    {mensaje}
+                                </div>
+                            )}
 
                             {/* Botones */}
                             <div style={{ 
