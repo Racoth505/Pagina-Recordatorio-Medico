@@ -110,6 +110,19 @@ const generarClaveUnica = (nombreCompleto, fechaNacimiento, usuariosExistentes) 
     return claveFinal;
 };
 
+// Función para generar contraseña automática de 6 caracteres
+const generarContraseñaAutomatica = () => {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let contraseña = '';
+    const longitud = 6; // Cambiado a 6 caracteres
+    
+    for (let i = 0; i < longitud; i++) {
+        contraseña += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    
+    return contraseña;
+};
+
 function AgregarPacientes() {
     const [formData, setFormData] = useState({
         nombreCompleto: '',
@@ -120,7 +133,8 @@ function AgregarPacientes() {
         tipoSangre: '',
         alergias: '',
         enfermedadesCronicas: '',
-        claveUnica: ''
+        claveUnica: '',
+        contraseña: ''
     });
 
     const [errores, setErrores] = useState({});
@@ -130,6 +144,12 @@ function AgregarPacientes() {
     useEffect(() => {
         const usuariosGuardados = JSON.parse(localStorage.getItem('usuarios')) || usuariosData;
         setUsuariosExistentes(usuariosGuardados);
+    }, []);
+
+    // Generar contraseña automáticamente al cargar el componente
+    useEffect(() => {
+        const contraseñaGenerada = generarContraseñaAutomatica();
+        setFormData(prev => ({ ...prev, contraseña: contraseñaGenerada }));
     }, []);
 
     const handleChange = (e) => {
@@ -166,6 +186,12 @@ function AgregarPacientes() {
                 setFormData(prev => ({ ...prev, claveUnica: '' }));
             }
         }
+    };
+
+    // Función para regenerar contraseña
+    const regenerarContraseña = () => {
+        const nuevaContraseña = generarContraseñaAutomatica();
+        setFormData(prev => ({ ...prev, contraseña: nuevaContraseña }));
     };
 
     const handleSubmit = (e) => {
@@ -219,13 +245,14 @@ function AgregarPacientes() {
             alergias: formData.alergias.trim(),
             padecimiento: formData.enfermedadesCronicas.trim(),
             doctorId: doctorId,
-            claveUnica: formData.claveUnica // ← Nueva clave única
+            claveUnica: formData.claveUnica,
+            contraseña: formData.contraseña
         };
 
         const usuariosActualizados = [...usuariosActuales, nuevoPaciente];
         localStorage.setItem('usuarios', JSON.stringify(usuariosActualizados));
 
-        alert(`Paciente agregado con exito\nClave única: ${formData.claveUnica}`);
+        alert(`Paciente agregado con exito\nClave única: ${formData.claveUnica}\nContraseña: ${formData.contraseña}`);
 
         setFormData({
             nombreCompleto: '',
@@ -236,7 +263,8 @@ function AgregarPacientes() {
             tipoSangre: '',
             alergias: '',
             enfermedadesCronicas: '',
-            claveUnica: ''
+            claveUnica: '',
+            contraseña: generarContraseñaAutomatica() // Generar nueva contraseña para el próximo paciente
         });
         setErrores({});
     };
@@ -300,6 +328,43 @@ function AgregarPacientes() {
                         />
                         <small style={{ color: '#666', fontSize: '12px' }}>
                             Formato: Primera letra nombre + apellido paterno + apellido materno + año nacimiento
+                        </small>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Contraseña *</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <input
+                                type="text"
+                                name="contraseña"
+                                value={formData.contraseña}
+                                readOnly
+                                placeholder="Se generará automáticamente"
+                                style={{ 
+                                    flex: 1,
+                                    backgroundColor: '#f5f5f5',
+                                    border: '1px solid #ddd',
+                                    color: '#666'
+                                }}
+                            />
+                            <button 
+                                type="button" 
+                                onClick={regenerarContraseña}
+                                style={{
+                                    padding: '8px 12px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Regenerar
+                            </button>
+                        </div>
+                        <small style={{ color: '#666', fontSize: '12px' }}>
+                            Contraseña generada automáticamente (6 caracteres: letras, números y caracteres especiales)
                         </small>
                     </div>
 
