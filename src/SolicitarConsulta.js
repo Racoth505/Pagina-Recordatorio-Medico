@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import './App.css';
 import agregarAzul from './assets/usuarios-azul.png';
 
-// Validaciones integradas
+// Funcion de validacion para los datos del formulario de consulta
 const validarConsulta = (consultaData) => {
     const errores = {};
 
-    // Validar nombre del paciente
+    // Validar nombre del paciente - solo letras y espacios
     const regexNombre = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{2,50}$/;
     if (!consultaData.paciente || !regexNombre.test(consultaData.paciente.trim())) {
         errores.paciente = 'El nombre debe contener solo letras y espacios (2-50 caracteres)';
     }
 
-    // Validar fecha
+    // Validar fecha - no puede ser en el pasado ni mas de 1 año en el futuro
     if (!consultaData.fecha) {
         errores.fecha = 'La fecha es requerida';
     } else {
@@ -31,7 +31,12 @@ const validarConsulta = (consultaData) => {
         }
     }
 
-    // Validar doctor (opcional)
+    // Validar hora - campo requerido
+    if (!consultaData.hora) {
+        errores.hora = 'La hora es requerida';
+    }
+
+    // Validar doctor - opcional pero si se llena debe tener formato correcto
     if (consultaData.doctor && consultaData.doctor.trim() !== '') {
         const regexDoctor = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{2,50}$/;
         if (!regexDoctor.test(consultaData.doctor.trim())) {
@@ -39,7 +44,7 @@ const validarConsulta = (consultaData) => {
         }
     }
 
-    // Validar motivo
+    // Validar motivo - entre 10 y 500 caracteres
     if (!consultaData.motivo || consultaData.motivo.trim().length === 0) {
         errores.motivo = 'El motivo de la consulta es requerido';
     } else if (consultaData.motivo.length > 500) {
@@ -55,22 +60,29 @@ const validarConsulta = (consultaData) => {
 };
 
 function SolicitarConsulta() {
+    // Estado para almacenar los datos del formulario
     const [formData, setFormData] = useState({
         paciente: '',
         doctor: '',
         fecha: '',
+        hora: '',
         motivo: ''
     });
+
+    // Estado para almacenar errores de validacion
     const [errores, setErrores] = useState({});
 
+    // Manejar cambios en los campos del formulario
     const handleChange = (e) => {
         const { name, value } = e.target;
         
+        // Limpiar errores del campo cuando el usuario escribe
         if (errores[name]) {
             setErrores(prev => ({ ...prev, [name]: '' }));
         }
 
         let valorLimpio = value;
+        // Validar en tiempo real: solo letras y espacios para el nombre
         if (name === 'paciente') {
             valorLimpio = value.replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '');
         }
@@ -78,9 +90,11 @@ function SolicitarConsulta() {
         setFormData(prev => ({ ...prev, [name]: valorLimpio }));
     };
 
+    // Manejar el envio del formulario
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // Validar todos los campos antes de enviar
         const resultadoValidacion = validarConsulta(formData);
         
         if (resultadoValidacion.hayErrores) {
@@ -89,26 +103,32 @@ function SolicitarConsulta() {
             return;
         }
         
+        // Obtener consultas existentes de localStorage
         const guardadas = JSON.parse(localStorage.getItem('consultas')) || [];
         
+        // Crear nueva consulta con los datos del formulario
         const nuevaConsulta = {
-            id: Date.now(),
+            id: Date.now(), // ID unico basado en timestamp
             paciente: formData.paciente.trim(),
             doctor: formData.doctor.trim(),
             fecha: formData.fecha,
+            hora: formData.hora, // Hora agregada para la reprogramacion
             motivo: formData.motivo.trim(),
-            status: 'pendiente'
+            status: 'pendiente' // Estado inicial de la consulta
         };
         
+        // Guardar la nueva consulta en localStorage
         const actualizadas = [...guardadas, nuevaConsulta];
         localStorage.setItem('consultas', JSON.stringify(actualizadas));
 
         alert('Consulta solicitada con exito. Un doctor la revisara.');
         
+        // Limpiar el formulario despues del envio exitoso
         setFormData({
             paciente: '',
             doctor: '',
             fecha: '',
+            hora: '',
             motivo: ''
         });
         setErrores({});
@@ -123,6 +143,7 @@ function SolicitarConsulta() {
 
             <form className="user-form-card" onSubmit={handleSubmit}>
                 <div className="form-grid">
+                    {/* Campo para el nombre del paciente */}
                     <div className="form-group">
                         <label>Tu Nombre Completo *</label>
                         <input 
@@ -138,6 +159,7 @@ function SolicitarConsulta() {
                         )}
                     </div>
                     
+                    {/* Campo para la fecha deseada */}
                     <div className="form-group">
                         <label>Fecha Deseada *</label>
                         <input 
@@ -152,7 +174,24 @@ function SolicitarConsulta() {
                             <span className="error-message">{errores.fecha}</span>
                         )}
                     </div>
+
+                    {/* Campo para la hora deseada - NUEVO CAMPO AGREGADO */}
+                    <div className="form-group">
+                        <label>Hora Deseada *</label>
+                        <input 
+                            type="time" 
+                            name="hora"
+                            value={formData.hora} 
+                            onChange={handleChange} 
+                            required
+                            className={errores.hora ? 'input-error' : ''}
+                        />
+                        {errores.hora && (
+                            <span className="error-message">{errores.hora}</span>
+                        )}
+                    </div>
                     
+                    {/* Campo opcional para especificar doctor preferido */}
                     <div className="form-group full-width">
                         <label>Doctor (Opcional)</label>
                         <input 
@@ -167,6 +206,7 @@ function SolicitarConsulta() {
                         )}
                     </div>
                     
+                    {/* Campo para el motivo de la consulta */}
                     <div className="form-group full-width">
                         <label>Motivo de la consulta *</label>
                         <input 
@@ -183,6 +223,7 @@ function SolicitarConsulta() {
                     </div>
                 </div>
 
+                {/* Boton para enviar el formulario */}
                 <div className="form-actions">
                     <button type="submit" className="btn btn-primary">
                         Enviar Solicitud
