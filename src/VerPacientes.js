@@ -2,110 +2,140 @@ import React, { useState, useEffect } from 'react';
 import './App.css'; 
 import usuariosAzul from './assets/usuarios-azul.png'; 
 
-// <-- AÑADIDO: Tu URL de API
 const API_URL = "https://a6p5u37ybkzmvauf4lko6j3yda0qgkcb.lambda-url.us-east-1.on.aws/";
 
 function VerPacientes() {
   const [pacientes, setPacientes] = useState([]);
-  
-  // --- ¡MODIFICADO! ---
-  // 'recetasMap' guardará las recetas por ID de paciente
-  // Ejemplo: { "id-paciente-1": [...recetas...], "id-paciente-2": [...recetas...] }
-  const [recetasMap, setRecetasMap] = useState({}); 
-  
+  const [recetasMap, setRecetasMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [pacienteExpandidoId, setPacienteExpandidoId] = useState(null);
-  const [error, setError] = useState(null); 
-  
-  // --- ¡AÑADIDO! ---
-  // Para saber qué historial de recetas se está cargando
-  const [loadingRecetaId, setLoadingRecetaId] = useState(null); 
+  const [error, setError] = useState(null);
+  const [loadingRecetaId, setLoadingRecetaId] = useState(null);
 
-  // useEffect para cargar pacientes (Sin cambios)
+  // --- ESTADOS DEL MODAL ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pacienteAEliminar, setPacienteAEliminar] = useState(null);
+
+  // Cargar pacientes
   useEffect(() => {
     const fetchPacientesDelDoctor = async () => {
       try {
         const loggedInDoctorId = localStorage.getItem('userId');
-        if (!loggedInDoctorId) {
-          throw new Error("No se pudo encontrar el ID del doctor. Por favor, inicie sesión de nuevo.");
-        }
+        if (!loggedInDoctorId) throw new Error("No se pudo encontrar el ID del doctor.");
+
         const payload = {
           action: "getPatientsByDoctor",
           data: { doctorId: loggedInDoctorId }
         };
+
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.message || "No se pudieron cargar los pacientes.");
         }
+
         const pacientesDeLaNube = await response.json();
         setPacientes(pacientesDeLaNube);
+
       } catch (err) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchPacientesDelDoctor();
-  }, []); 
 
-  // --- ¡MODIFICADO COMPLETAMENTE! ---
-  // Ahora es 'async' y llama a la API cuando es necesario
-  const toggleRecetas = async (pacienteId) => {
-    // Si estamos cerrando el que ya está abierto
-    if (pacienteExpandidoId === pacienteId) {
-      setPacienteExpandidoId(null); 
-      return; // No hagas nada más
+    fetchPacientesDelDoctor();
+  }, []);
+
+  // Abrir modal de confirmación
+  const abrirModalEliminar = (paciente) => {
+    setPacienteAEliminar(paciente);
+    setIsModalOpen(true);
+  };
+
+  // Cerrar modal
+  const cerrarModal = () => {
+    setIsModalOpen(false);
+    setPacienteAEliminar(null);
+  };
+
+  // Confirmar eliminación
+  const confirmarEliminar = async () => {
+    if (!pacienteAEliminar) return;
+
+    try {
+      const payload = {
+        action: "deletePatient",
+        data: { pacienteId: pacienteAEliminar.id }
+      };
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Error al eliminar el paciente.");
+
+      // Eliminar localmente
+      setPacientes(prev => prev.filter(p => p.id !== pacienteAEliminar.id));
+
+    } catch (err) {
+      alert("Error: " + err.message);
     }
 
-    // Si estamos abriendo uno nuevo
+    cerrarModal();
+  };
+
+  // Expandir recetas
+  const toggleRecetas = async (pacienteId) => {
+    if (pacienteExpandidoId === pacienteId) {
+      setPacienteExpandidoId(null);
+      return;
+    }
+
     setPacienteExpandidoId(pacienteId);
 
-    // ¿Ya tenemos las recetas de este paciente? Si sí, no las vuelvas a cargar.
-    if (recetasMap[pacienteId]) {
-      return; // Ya están cargadas
-    }
+    if (recetasMap[pacienteId]) return;
 
-    // Si no las tenemos, las cargamos:
-    setLoadingRecetaId(pacienteId); // Mostrar "cargando..."
+    setLoadingRecetaId(pacienteId);
+
     try {
       const payload = {
         action: "getRecipesByPatient",
-        data: { pacienteId: pacienteId }
+        data: { pacienteId }
       };
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) {
-        throw new Error("Error al cargar las recetas");
-      }
+
+      if (!response.ok) throw new Error("Error al cargar las recetas");
+
       const recetasDelPaciente = await response.json();
-      
-      // Guardamos las recetas en nuestro "mapa"
-      setRecetasMap(prevMap => ({
-        ...prevMap,
-        [pacienteId]: recetasDelPaciente 
+
+      setRecetasMap(prev => ({
+        ...prev,
+        [pacienteId]: recetasDelPaciente
       }));
 
     } catch (err) {
-      console.error("Error cargando recetas:", err);
-      // Opcional: guardar un error en el mapa
-      setRecetasMap(prevMap => ({
-        ...prevMap,
-        [pacienteId]: { error: err.message } 
+      setRecetasMap(prev => ({
+        ...prev,
+        [pacienteId]: { error: err.message }
       }));
     } finally {
-      setLoadingRecetaId(null); // Dejar de cargar
+      setLoadingRecetaId(null);
     }
   };
-  
-  // if (isLoading) ... (Sin cambios)
+
   if (isLoading) {
     return (
       <div className="usuarios-container">
@@ -113,14 +143,11 @@ function VerPacientes() {
           <img src={usuariosAzul} alt="Pacientes" />
           Mis pacientes
         </h2>
-        <p style={{ padding: '20px', textAlign: 'center' }}>
-          Cargando pacientes desde la nube...
-        </p>
+        <p style={{ padding: '20px', textAlign: 'center' }}>Cargando pacientes...</p>
       </div>
     );
   }
 
-  // if (error) ... (Sin cambios)
   if (error) {
     return (
       <div className="usuarios-container">
@@ -128,16 +155,13 @@ function VerPacientes() {
           <img src={usuariosAzul} alt="Pacientes" />
           Mis pacientes
         </h2>
-        <p style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
-          Error al cargar: {error}
-        </p>
+        <p style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</p>
       </div>
     );
   }
-  
-  // const pacientesOrdenados ... (Sin cambios)
-  const pacientesOrdenados = [...pacientes].sort((a, b) => 
-      a.nombreCompleto.localeCompare(b.nombreCompleto)
+
+  const pacientesOrdenados = [...pacientes].sort((a, b) =>
+    a.nombreCompleto.localeCompare(b.nombreCompleto)
   );
 
   return (
@@ -148,88 +172,117 @@ function VerPacientes() {
       </h2>
 
       <div className="lista-items-container">
-
         {pacientesOrdenados.length === 0 && (
-            <p style={{ textAlign: 'center' }}>No tienes pacientes registrados en la nube.</p>
+          <p style={{ textAlign: 'center' }}>No tienes pacientes registrados.</p>
         )}
 
         {pacientesOrdenados.map(paciente => {
-          // --- ¡MODIFICADO! ---
-          // Leemos las recetas del 'recetasMap'
           const recetasDelPaciente = recetasMap[paciente.id] || [];
           const isExpandido = pacienteExpandidoId === paciente.id;
-
-          // Contamos solo las recetas que no sean un error
           const numRecetas = Array.isArray(recetasDelPaciente) ? recetasDelPaciente.length : 0;
 
           return (
             <div key={paciente.id} className="item-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                   <h4>{paciente.nombreCompleto}</h4>
                   <p><strong>Alergias:</strong> {paciente.alergias || 'N/A'}</p>
-                  <p style={{fontSize: '0.9rem', color: '#555'}}>
+                  <p style={{ fontSize: '0.9rem', color: '#555' }}>
                     ID: {paciente.id} | Tel: {paciente.telefono || 'N/A'}
                   </p>
                 </div>
-                <button 
-                  className={`btn ${isExpandido ? 'btn-secondary' : 'btn-primary'}`}
-                  onClick={() => toggleRecetas(paciente.id)}
-                  // Deshabilitar si estamos cargando ESTAS recetas
-                  disabled={loadingRecetaId === paciente.id} 
-                >
-                  {loadingRecetaId === paciente.id ? 'Cargando...' : 
-                   (isExpandido ? 'Ocultar' : 'Ver Recetas') + ` (${numRecetas})`}
-                </button>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    className={`btn btn-danger`}
+                    onClick={() => abrirModalEliminar(paciente)}
+                  >
+                    Eliminar
+                  </button>
+
+                  <button
+                    className={`btn ${isExpandido ? 'btn-secondary' : 'btn-primary'}`}
+                    onClick={() => toggleRecetas(paciente.id)}
+                    disabled={loadingRecetaId === paciente.id}
+                  >
+                    {loadingRecetaId === paciente.id ? 'Cargando...' :
+                      (isExpandido ? 'Ocultar' : 'Ver Recetas') + ` (${numRecetas})`}
+                  </button>
+                </div>
               </div>
 
               {isExpandido && (
                 <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
                   <h5>Historial de Recetas:</h5>
 
-                  {/* --- ¡AÑADIDO! --- */}
                   {loadingRecetaId === paciente.id && (
-                    <p style={{fontSize: '0.9rem', color: '#777'}}>Cargando historial...</p>
+                    <p style={{ fontSize: '0.9rem' }}>Cargando historial...</p>
                   )}
 
-                  {/* --- MODIFICADO --- */}
-                  {loadingRecetaId === null && Array.isArray(recetasDelPaciente) && recetasDelPaciente.length === 0 && (
-                    <p style={{fontSize: '0.9rem', color: '#777'}}>
-                      No hay recetas para este paciente.
-                    </p>
+                  {Array.isArray(recetasDelPaciente) && recetasDelPaciente.length === 0 && (
+                    <p>No hay recetas para este paciente.</p>
                   )}
-                  
-                  {/* --- MODIFICADO --- */}
-                  {loadingRecetaId === null && Array.isArray(recetasDelPaciente) && recetasDelPaciente.length > 0 && (
+
+                  {Array.isArray(recetasDelPaciente) &&
+                    recetasDelPaciente.length > 0 &&
                     [...recetasDelPaciente].reverse().map(receta => (
-                      <div key={receta.id} style={{ border: '1px solid #f0f0f0', borderRadius: '8px', padding: '15px', marginBottom: '10px' }}>
-                        <p style={{ margin: 0, fontWeight: 'bold' }}>
-                          Fecha: {receta.fechaEmision} - Diag: {receta.diagnostico}
-                        </p>
-                        <div className="medicamentos-list" style={{maxHeight: 'none', padding: '5px 0 0 0'}}>
-                          
-                          {/* --- ¡MODIFICADO! --- */}
-                          {/* Tu Lambda devuelve 'medicamentos' (la lista) */}
-                          {/* y cada med tiene 'nombre_medicamento' */}
-                          {receta.medicamentos.map((med) => (
-                             <div key={med.id} className="medicamento-item" style={{padding: '8px', background: '#f9f9f9'}}>
-                               <div className="medicamento-info">
-                                 <strong>{med.nombre_medicamento}</strong>
-                                 <p>{med.dosis} • {med.frecuencia}h • {med.duracion}</p>
-                               </div>
-                             </div>
+                      <div key={receta.id} className="receta-card">
+                        <p><strong>Fecha:</strong> {receta.fechaEmision}</p>
+                        <p><strong>Diagnóstico:</strong> {receta.diagnostico}</p>
+
+                        <div className="medicamentos-list">
+                          {receta.medicamentos.map(med => (
+                            <div key={med.id} className="medicamento-item">
+                              <strong>{med.nombre_medicamento}</strong>
+                              <p>{med.dosis} • {med.frecuencia}h • {med.duracion}</p>
+                            </div>
                           ))}
                         </div>
                       </div>
-                    ))
-                  )}
+                    ))}
                 </div>
               )}
-
             </div>
           );
         })}
       </div>
+
+      {/* --- MODAL ESTÁNDAR --- */}
+      {isModalOpen && pacienteAEliminar && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+
+            <div className="modal-header">
+              <h3 className="modal-title">Confirmar Eliminación</h3>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                ¿Está seguro de que desea eliminar al paciente
+                <strong className="user-name-highlight">
+                  {` ${pacienteAEliminar.nombreCompleto} `}
+                </strong>
+                con ID
+                <code className="user-id-highlight">
+                  {` ${pacienteAEliminar.id} `}
+                </code>?
+              </p>
+              <p className="warning-text">Esta acción es irreversible.</p>
+            </div>
+
+            <div className="modal-footer">
+              <button className="modal-cancel-btn" onClick={cerrarModal}>
+                Cancelar
+              </button>
+              <button className="modal-confirm-btn" onClick={confirmarEliminar}>
+                Sí, Eliminar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

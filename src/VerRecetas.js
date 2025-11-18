@@ -174,6 +174,7 @@ function VerRecetas() {
             </div>
 
             {/* --- MODAL DE CONFIRMACIÓN --- */}
+            {/* Modal */}
             {isModalOpen && recetaAEliminar && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -183,11 +184,21 @@ function VerRecetas() {
 
                         <div className="modal-body">
                             <p>
-                                ¿Está seguro de que desea eliminar la receta de
-                                <strong className="user-name-highlight"> {recetaAEliminar.pacienteNombre} </strong>
-                                (ID receta:
-                                <code className="user-id-highlight"> {recetaAEliminar.id}</code>)?
+                                ¿Seguro que deseas eliminar la receta con ID  
+                                <code className="user-id-highlight">{` ${recetaAEliminar.id} `}</code>?
                             </p>
+
+                            <p>
+                                Paciente:  
+                                <strong className="user-name-highlight">
+                                    {` ${recetaAEliminar.pacienteNombre} `}
+                                </strong>
+                                (ID Paciente:  
+                                <code className="user-id-highlight">
+                                    {` ${recetaAEliminar.id_paciente} `}
+                                </code>)
+                            </p>
+
                             <p className="warning-text">Esta acción es irreversible.</p>
                         </div>
 
