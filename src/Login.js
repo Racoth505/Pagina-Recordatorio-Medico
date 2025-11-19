@@ -1,82 +1,84 @@
 import React, { useState } from 'react';
-import './App.css'; 
+import './App.css';
 import { useNavigate } from 'react-router-dom';
 import heartbeatLogo from './assets/heartbeat_logo.png';
 
-// Pega tu URL de Lambda aquí
+// ⚠️ PEGA AQUÍ LA URL DE TU LAMBDA (Misma que en AgregarUsuario)
 const API_URL = "https://a6p5u37ybkzmvauf4lko6j3yda0qgkcb.lambda-url.us-east-1.on.aws/";
 
 function Login() {
-    const [claveUnica, setClaveUnica] = useState(''); 
+    // Nota: Aunque la variable se llame claveUnica, aquí capturamos el Correo para Doctores/Admin
+    const [correoInput, setCorreoInput] = useState(''); 
     const [contrasena, setContrasena] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); 
+    const [cargando, setCargando] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError('');
-        setLoading(true); 
-
-        // 1. Preparamos el 'body'
-        const payload = {
-            action: "login",
-            data: {
-                correo: claveUnica, 
-                // --- ¡CAMBIO AQUÍ! ---
-                // Dejamos de usar la 'ñ'. Ahora la clave es 'password'.
-                password: contrasena 
-            }
-        };
+        setCargando(true);
 
         try {
-            // 2. Usamos 'fetch' para llamar a nuestra API de Lambda
+            // 1. Petición a la API
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'login',
+                    data: {
+                        correo: correoInput, // Enviamos como correo para buscar en tabla Usuarios
+                        password: contrasena
+                    }
+                })
             });
 
-            const data = await response.json(); 
+            const result = await response.json();
 
-            // 3. Verificamos si la API nos dio un error
-            if (!response.ok) {
-                throw new Error(data.message || 'Error en el login');
-            }
+            if (response.ok) {
+                const usuario = result.user;
 
-            // 4. ¡Login Exitoso!
-            const { user } = data; 
-            localStorage.setItem('userId', user.id);
-            localStorage.setItem('rol', user.rol);
-            localStorage.setItem('nombre', user.nombreCompleto);
-            
-            setLoading(false); 
+                // 2. Guardar sesión en LocalStorage con datos REALES de la BD
+                localStorage.setItem('userId', usuario.id);
+                localStorage.setItem('rol', usuario.rol);
+                localStorage.setItem('nombre', usuario.nombreCompleto);
+                
+                // Datos opcionales que la API podría o no devolver (evita nulls)
+                localStorage.setItem('correo', usuario.correo || '');
+                localStorage.setItem('telefono', usuario.telefono || '');
+                localStorage.setItem('direccionConsultorio', usuario.direccion || '');
+                localStorage.setItem('especialidad', usuario.especialidad || 'Médico General');
 
-            // 6. Navegamos al dashboard correcto
-            switch (user.rol) {
-                case 'Administrador':
-                    navigate('/dashboard/usuarios'); 
-                    break;
-                case 'Doctor':
-                    navigate('/doctor/ver-pacientes');
-                    break;
-                default:
-                    navigate('/login'); 
+                // 3. Redirección según Rol
+                switch (usuario.rol) {
+                    case 'Administrador':
+                        navigate('/dashboard/usuarios'); 
+                        break;
+                    case 'Doctor':
+                        navigate('/doctor/ver-pacientes');
+                        break;
+                    default:
+                        // Si por alguna razón un paciente intenta entrar por aquí (y la lógica lo permite)
+                        setError('Este portal es solo para personal médico.');
+                        localStorage.clear(); // Limpiar sesión por seguridad
+                }
+            } else {
+                // Error 401 o 404 desde la Lambda
+                setError(result.message || 'Credenciales incorrectas.');
             }
 
         } catch (err) {
-            // 7. Capturamos cualquier error
-            setLoading(false); 
-            setError(err.message || 'No se pudo conectar al servidor.');
+            console.error("Error de conexión:", err);
+            setError('Error de conexión con el servidor. Intente más tarde.');
+        } finally {
+            setCargando(false);
         }
     };
 
     return (
         <div className="login-container">
             <div className="login-aside">
-                <div className="logo-container">
+                <div className="logo-circle">
                     <img 
                         src={heartbeatLogo} 
                         alt="Heartbeat Logo" 
@@ -90,13 +92,15 @@ function Login() {
                     <h2>Ingresar</h2>
 
                     <div className="form-group">
-                        <label htmlFor="clave-unica">Usuario o correo</label>
+                        <label htmlFor="correo-input">Correo Electrónico</label>
                         <input
-                            type="text"
-                            id="clave-unica"
-                            value={claveUnica}
-                            onChange={(e) => setClaveUnica(e.target.value)}
-                            disabled={loading} 
+                            type="email"
+                            id="correo-input"
+                            value={correoInput}
+                            onChange={(e) => setCorreoInput(e.target.value)}
+                            placeholder="ejemplo@hospital.com"
+                            required
+                            disabled={cargando}
                         />
                     </div>
 
@@ -107,14 +111,30 @@ function Login() {
                             id="contrasena"
                             value={contrasena}
                             onChange={(e) => setContrasena(e.target.value)}
-                            disabled={loading} 
+                            required
+                            disabled={cargando}
                         />
                     </div>
 
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    {error && (
+                        <div style={{ 
+                            color: '#721c24', 
+                            backgroundColor: '#f8d7da', 
+                            padding: '10px', 
+                            borderRadius: '5px',
+                            marginBottom: '15px',
+                            fontSize: '14px'
+                        }}>
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? 'Ingresando...' : 'Ingresar'}
+                    <button 
+                        type="submit" 
+                        disabled={cargando}
+                        style={{ opacity: cargando ? 0.7 : 1 }}
+                    >
+                        {cargando ? 'Verificando...' : 'Ingresar'}
                     </button>
                 </form>
             </div>
